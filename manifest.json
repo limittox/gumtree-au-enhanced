@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "Gumtree AU Enhanced",
+    "version": "0.0.1",
+    "description": "Enhances the Gumtree AU experience with some quality of life improvements",
+    "permissions": [
+      "activeTab",
+      "storage"
+    ],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"]
+      }
+    ],
+    "background": {
+      "service_worker": "background.js"
+    }
+  }
