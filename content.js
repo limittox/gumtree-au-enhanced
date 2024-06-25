@@ -24,124 +24,128 @@ function handleDfpAdWrappers() {
   // Hide any existing ad wrappers
   hideExistingAdWrappers();
 
-  // Set up a MutationObserver to watch for new ad wrappers
-  // const observer = new MutationObserver((mutations) => {
-  //   for (let mutation of mutations) {
-  //     if (mutation.type === 'childList') {
-  //       for (let node of mutation.addedNodes) {
-  //         if (node.nodeType === Node.ELEMENT_NODE) {
-  //           if (node.classList.contains('vip-ad-gallery__dfp-ad-wrapper')) {
-  //             node.style.setProperty('display', 'none', 'important');
-  //           } else {
-  //             const adWrappers = node.getElementsByClassName('vip-ad-gallery__dfp-ad-wrapper');
-  //             for (let wrapper of adWrappers) {
-  //               wrapper.style.setProperty('display', 'none', 'important');
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // });
-
-  // // Start observing the entire document
-  // observer.observe(document.body, { childList: true, subtree: true });
-
   console.log('Ad wrapper handler set up successfully');
 }
 
-function adjustGalleryContainers() {
-  const swipeContainers = document.querySelectorAll('.vip-ad-gallery__swipe-container');
-  const imgWrappers = document.querySelectorAll('.vip-ad-gallery__img-wrapper');
+function createCustomCarousel() {
+  console.log('Creating custom carousel');
 
-  function setWidths() {
-    let width = '100%';
-    if (window.matchMedia('(min-width: 1440px)').matches) {
-      width = '1440px';
-    } else if (window.matchMedia('(min-width: 1280px)').matches) {
-      width = '1280px';
-    } else if (window.matchMedia('(min-width: 768px)').matches) {
-      width = '768px';
-    }
-
-    swipeContainers.forEach(container => {
-      container.style.width = width;
-    });
-
-    imgWrappers.forEach(wrapper => {
-      wrapper.style.width = width;
-    });
-  }
-
-  // Initial set
-  setWidths();
-
-  // Update on window resize
-  window.addEventListener('resize', setWidths);
-}
-
-function adjustGalleryNavigation() {
-  console.log('adjustGalleryNavigation function called');
-  
-  const nextButton = document.querySelector('[class*="vip-ad-gallery__nav-btn--next"]');
-  const imgContainer = document.querySelector('.vip-ad-gallery__img-container');
-
-  if (!imgContainer || !(imgContainer instanceof Node)) {
-    console.error('Image container not found or not a valid DOM node');
+  // Find the original carousel container
+  const originalCarousel = document.querySelector('.vip-ad-gallery__swipe-container');
+  if (!originalCarousel) {
+    console.error('Original carousel not found');
     return;
   }
 
-  if (!nextButton) {
-    console.error('Next button not found');
+  const originalCarouselThumbnails = document.querySelector('.vip-ad-gallery-thumbnails__list');
+  if (!originalCarouselThumbnails) {
+    console.error('Original carousel thumbnails not found');
     return;
   }
 
-  let currentIndex = 0;
+  // Extract all the image URLs from the original carousel thumbnails
+  const imageUrls = Array.from(originalCarouselThumbnails.querySelectorAll('div'))
+    .map(div => div.style.backgroundImage)
+    .map(url => url.match(/url\("([^"]+)"\)/)[1])
+    .filter(src => src.includes('gumtreeau-res.cloudinary.com'));
+  console.log(imageUrls);
 
-  function applyTranslation() {
-    currentIndex++;
-    let translationAmount;
-    if (window.matchMedia('(min-width: 1440px)').matches) {
-      translationAmount = -1440;
-    } else if (window.matchMedia('(min-width: 1280px)').matches) {
-      translationAmount = -1280;
-    } else if (window.matchMedia('(min-width: 768px)').matches) {
-      translationAmount = -768;
-    } else {
-      console.log('Viewport width below 768px, no modification');
-      return;  // Don't modify if below 768px
-    }
+  // Create our custom carousel structure
+  const customCarousel = document.createElement('div');
+  customCarousel.className = 'custom-carousel';
+  customCarousel.style.cssText = `
+    width: 80%;
+    height: 80%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+    position: relative;
+  `;
 
-    const newTranslation = translationAmount * currentIndex;
+  const imageContainer = document.createElement('div');
+  imageContainer.className = 'custom-carousel-container';
+  imageContainer.style.cssText = `
+    display: flex;
+    transition: transform 0.3s ease;
+  `;
 
-    console.log('Current index:', currentIndex);
-    console.log('Translation amount:', translationAmount);
-    console.log('New translation:', newTranslation);
-    
-    imgContainer.style.transform = `translateX(${newTranslation}px)`;
-    console.log('Applied new translation:', newTranslation);
-  }
-
-  if (!nextButton.hasEventListener) {
-    nextButton.addEventListener('click', () => {
-      console.log('The next button is clicked');
-      setTimeout(applyTranslation, 500);
-      // applyTranslation();
-    });
-    nextButton.hasEventListener = true;
-  }
-
-  // Optional: Keep the observer to log changes
-  const observer = new MutationObserver((mutations) => {
-    console.log('Style mutation detected');
+  imageUrls.forEach((url, index) => {
+    const img = document.createElement('img');
+    img.src = url.replace('t_$_s-l135', 't_$_57');
+    img.style.cssText = `
+      width: 100%;
+      flex-shrink: 0;
+    `;
+    imageContainer.appendChild(img);
   });
 
-  try {
-    observer.observe(imgContainer, { attributes: true, attributeFilter: ['style'] });
-    console.log('Successfully set up observer on image container');
-  } catch (error) {
-    console.error('Error setting up observer:', error);
+  customCarousel.appendChild(imageContainer);
+
+  // Add navigation buttons
+  const prevButton = document.createElement('button');
+  prevButton.textContent = '←';
+  prevButton.className = 'custom-carousel-nav prev';
+  const nextButton = document.createElement('button');
+  nextButton.textContent = '→';
+  nextButton.className = 'custom-carousel-nav next';
+
+  const navButtonStyle = `
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+  `;
+  prevButton.style.cssText = navButtonStyle + 'left: 10px;';
+  nextButton.style.cssText = navButtonStyle + 'right: 10px;';
+
+  customCarousel.appendChild(prevButton);
+  customCarousel.appendChild(nextButton);
+
+  // Replace the original carousel with our custom one
+  originalCarousel.parentNode.replaceChild(customCarousel, originalCarousel);
+
+  // Implement navigation functionality
+  let currentIndex = 0;
+
+  function updateCarousel() {
+    const width = customCarousel.offsetWidth;
+    imageContainer.style.transform = `translateX(${-currentIndex * width}px)`;
   }
+
+  function nextImage() {
+    currentIndex = (currentIndex + 1) % imageUrls.length;
+    updateCarousel();
+  }
+
+  function prevImage() {
+    currentIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
+    updateCarousel();
+  }
+
+  nextButton.addEventListener('click', nextImage);
+  prevButton.addEventListener('click', prevImage);
+
+  // Initial update
+  updateCarousel();
+
+  // Adjust carousel on window resize
+  window.addEventListener('resize', updateCarousel);
+
+  console.log('Custom carousel created successfully');
+
+  removeOldCarouselElements();
+
+  console.log('Old carousel elements removed successfully');
+}
+
+function removeOldCarouselElements() {
+  const nextButton = document.querySelector('[class*="vip-ad-gallery__nav-btn--next"]');
+  nextButton.style.setProperty('display', 'none', 'important');
 }
 
 function waitForElement(selector, callback) {
@@ -155,9 +159,8 @@ function waitForElement(selector, callback) {
   function applyChanges() {
     replaceImageUrls();
     handleDfpAdWrappers();
-    adjustGalleryContainers();
-    waitForElement('.vip-ad-gallery__img-container', () => {
-      adjustGalleryNavigation();
+    waitForElement('.vip-ad-gallery__swipe-container', () => {
+      createCustomCarousel();
     });
   }
   
