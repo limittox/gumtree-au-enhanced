@@ -170,10 +170,12 @@ function createCustomCarousel() {
 function removeOldCarouselElements() {
   const nextButton = document.querySelector('[class*="vip-ad-gallery__nav-btn--next"]');
   nextButton.style.setProperty('display', 'none', 'important');
+
+  const prevButton = document.querySelector('[class*="vip-ad-gallery__nav-btn--prev"]');
+  prevButton.style.setProperty('display', 'none', 'important');
 }
 
 function applyChanges() {
-  replaceImageUrls();
   handleDfpAdWrappers();
   waitForElement('.vip-ad-gallery__swipe-container', () => {
     createCustomCarousel();
