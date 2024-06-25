@@ -54,11 +54,12 @@ function createCustomCarousel() {
   const customCarousel = document.createElement('div');
   customCarousel.className = 'custom-carousel';
   customCarousel.style.cssText = `
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 80%;
-    height: 80%;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+    height: 80vh;
+    margin: 0 auto;
     overflow: hidden;
     position: relative;
   `;
@@ -68,26 +69,38 @@ function createCustomCarousel() {
   imageContainer.style.cssText = `
     display: flex;
     transition: transform 0.3s ease;
+    height: 100%;
   `;
 
   imageUrls.forEach((url, index) => {
+    const imgWrapper = document.createElement('div');
+    imgWrapper.style.cssText = `
+      flex: 0 0 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    `;
+
     const img = document.createElement('img');
     img.src = url.replace('t_$_s-l135', 't_$_57');
     img.style.cssText = `
-      width: 100%;
-      flex-shrink: 0;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
     `;
-    imageContainer.appendChild(img);
+    imgWrapper.appendChild(img);
+    imageContainer.appendChild(imgWrapper);
   });
 
   customCarousel.appendChild(imageContainer);
 
   // Add navigation buttons
   const prevButton = document.createElement('button');
-  prevButton.textContent = '←';
+  prevButton.innerHTML = '&#10094;'; // Left arrow character
   prevButton.className = 'custom-carousel-nav prev';
   const nextButton = document.createElement('button');
-  nextButton.textContent = '→';
+  nextButton.innerHTML = '&#10095;'; // Right arrow character
   nextButton.className = 'custom-carousel-nav next';
 
   const navButtonStyle = `
@@ -97,11 +110,14 @@ function createCustomCarousel() {
     background: rgba(0,0,0,0.5);
     color: white;
     border: none;
-    padding: 10px;
+    padding: 15px;
+    font-size: 24px;
     cursor: pointer;
+    z-index: 10;
+    transition: background 0.3s ease;
   `;
-  prevButton.style.cssText = navButtonStyle + 'left: 10px;';
-  nextButton.style.cssText = navButtonStyle + 'right: 10px;';
+  prevButton.style.cssText = navButtonStyle + 'left: 10px; border-radius: 0 3px 3px 0;';
+  nextButton.style.cssText = navButtonStyle + 'right: 10px; border-radius: 3px 0 0 3px;';
 
   customCarousel.appendChild(prevButton);
   customCarousel.appendChild(nextButton);
@@ -115,20 +131,40 @@ function createCustomCarousel() {
   function updateCarousel() {
     const width = customCarousel.offsetWidth;
     imageContainer.style.transform = `translateX(${-currentIndex * width}px)`;
+    updateNavigationButtons();
   }
 
   function nextImage() {
-    currentIndex = (currentIndex + 1) % imageUrls.length;
-    updateCarousel();
+    if (currentIndex < imageUrls.length - 1) {
+      currentIndex++;
+      updateCarousel();
+    }
   }
 
   function prevImage() {
-    currentIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
-    updateCarousel();
+    if (currentIndex > 0) {
+      currentIndex--;
+      updateCarousel();
+    }
+  }
+
+  function updateNavigationButtons() {
+    prevButton.style.display = currentIndex === 0 ? 'none' : 'block';
+    nextButton.style.display = currentIndex === imageUrls.length - 1 ? 'none' : 'block';
   }
 
   nextButton.addEventListener('click', nextImage);
   prevButton.addEventListener('click', prevImage);
+
+  // Add hover effect to buttons
+  [prevButton, nextButton].forEach(button => {
+    button.addEventListener('mouseover', () => {
+      button.style.background = 'rgba(0,0,0,0.8)';
+    });
+    button.addEventListener('mouseout', () => {
+      button.style.background = 'rgba(0,0,0,0.5)';
+    });
+  });
 
   // Initial update
   updateCarousel();
