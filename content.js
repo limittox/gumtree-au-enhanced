@@ -1,12 +1,3 @@
-function replaceImageUrls() {
-    const images = document.getElementsByTagName('img');
-    for (let img of images) {
-      if (img.src.match(/https:\/\/gumtreeau-res\.cloudinary\.com\/image\/private\/t_\$_s-l800\/gumtree\/.*\.jpg/)) {
-        img.src = img.src.replace('t_$_s-l800', 't_$_57');
-      }
-    }
-  }
-  
 function handleDfpAdWrappers() {
   // Create a style element to hide the ad wrappers
   const style = document.createElement('style');
@@ -172,16 +163,21 @@ function createCustomCarousel() {
   // Adjust carousel on window resize
   window.addEventListener('resize', updateCarousel);
 
-  console.log('Custom carousel created successfully');
-
+  // Removing elements associated with the old carousel
   removeOldCarouselElements();
-
-  console.log('Old carousel elements removed successfully');
 }
 
 function removeOldCarouselElements() {
   const nextButton = document.querySelector('[class*="vip-ad-gallery__nav-btn--next"]');
   nextButton.style.setProperty('display', 'none', 'important');
+}
+
+function applyChanges() {
+  replaceImageUrls();
+  handleDfpAdWrappers();
+  waitForElement('.vip-ad-gallery__swipe-container', () => {
+    createCustomCarousel();
+  });
 }
 
 function waitForElement(selector, callback) {
@@ -192,13 +188,6 @@ function waitForElement(selector, callback) {
     setTimeout(() => waitForElement(selector, callback), 500);
   }
 }
-  function applyChanges() {
-    replaceImageUrls();
-    handleDfpAdWrappers();
-    waitForElement('.vip-ad-gallery__swipe-container', () => {
-      createCustomCarousel();
-    });
-  }
   
   // Initial check and application
   chrome.storage.sync.get('enabled', function(data) {
