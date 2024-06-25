@@ -181,39 +181,39 @@ function applyChanges() {
 }
 
 function waitForElement(selector, callback) {
-  const element = document.querySelector(selector);
-  if(element) {
-    callback(element);
-  } else {
-    setTimeout(() => waitForElement(selector, callback), 500);
-  }
+const element = document.querySelector(selector);
+if(element) {
+  callback(element);
+} else {
+  setTimeout(() => waitForElement(selector, callback), 500);
+}
 }
   
-  // Initial check and application
+// Initial check and application
+chrome.storage.sync.get('enabled', function(data) {
+  if (data.enabled) {
+    applyChanges();
+  }
+});
+
+// Listen for changes in extension state
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "toggle") {
+    if (request.enabled) {
+      applyChanges();
+    } else {
+      location.reload();
+    }
+  }
+});
+  
+// Observe DOM changes to handle dynamically loaded content
+const observer = new MutationObserver(function(mutations) {
   chrome.storage.sync.get('enabled', function(data) {
     if (data.enabled) {
       applyChanges();
     }
   });
+});
   
-  // Listen for changes in extension state
-  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.action === "toggle") {
-      if (request.enabled) {
-        applyChanges();
-      } else {
-        location.reload();
-      }
-    }
-  });
-  
-  // Observe DOM changes to handle dynamically loaded content
-  const observer = new MutationObserver(function(mutations) {
-    chrome.storage.sync.get('enabled', function(data) {
-      if (data.enabled) {
-        applyChanges();
-      }
-    });
-  });
-  
-  observer.observe(document.body, { childList: true, subtree: true });
+observer.observe(document.body, { childList: true, subtree: true });
