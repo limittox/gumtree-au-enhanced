@@ -4,17 +4,23 @@
     "version": "0.0.1",
     "description": "Enhances the Gumtree AU experience with some quality of life improvements",
     "permissions": [
-      "activeTab",
       "storage"
+    ],
+    "host_permissions": [
+        "*://*.gumtree.com.au/*",
+        "*://*.gumtreeau-res.cloudinary.com/*"
     ],
     "action": {
       "default_popup": "popup.html"
     },
     "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
-      }
+        {
+          "matches": [
+            "*://*.gumtree.com.au/*",
+            "*://*.gumtreeau-res.cloudinary.com/*"
+          ],
+          "js": ["content.js"]
+        }
     ],
     "background": {
       "service_worker": "background.js"
