@@ -34,12 +34,22 @@ function createCustomCarousel() {
     return;
   }
 
+  // Extract position of interstitial ad
+  const posOfIntertitialAd = Array.from(document.querySelector('.vip-ad-gallery__img-container').querySelectorAll('div'))
+    .map((div, index) => [div.children[0], index])
+    .filter(([div]) => div?.children[0]?.className?.includes('interstitial'))
+    .map(([_,index]) => index);
+
   // Extract all the image URLs from the original carousel thumbnails
   const imageUrls = Array.from(originalCarouselThumbnails.querySelectorAll('div'))
     .map(div => div.style.backgroundImage)
     .map(url => url.match(/url\("([^"]+)"\)/)[1])
     .filter(src => src.includes('gumtreeau-res.cloudinary.com'));
-  console.log(imageUrls);
+
+  // Replace intertitial ads in imageUrls with image of Gumtree Enhanced
+  posOfIntertitialAd.forEach((index) => {
+    imageUrls.splice(index, 0, chrome.runtime.getURL("img/gumtree-enhanced.png"));
+  });
 
   // Create our custom carousel structure
   const customCarousel = document.createElement('div');
@@ -63,7 +73,7 @@ function createCustomCarousel() {
     height: 100%;
   `;
 
-  imageUrls.forEach((url, index) => {
+  imageUrls.forEach((url) => {
     const imgWrapper = document.createElement('div');
     imgWrapper.style.cssText = `
       flex: 0 0 100%;
@@ -125,17 +135,29 @@ function createCustomCarousel() {
     updateNavigationButtons();
   }
 
-  function nextImage() {
+  function nextImage(keypress=false) {
     if (currentIndex < imageUrls.length - 1) {
       currentIndex++;
       updateCarousel();
+
+      // Clicking the next image button in the original carousel
+      if (keypress) {
+        const nextButton = document.querySelector('[class*="vip-ad-gallery__nav-btn--next"]');
+        nextButton.click();
+      }
     }
   }
 
-  function prevImage() {
+  function prevImage(keypress=false) {
     if (currentIndex > 0) {
       currentIndex--;
       updateCarousel();
+
+       // Clicking the previous image button in the original carousel
+      if (keypress) {
+        const prevButton = document.querySelector('[class*="vip-ad-gallery__nav-btn--prev"]');
+        prevButton.click();
+      }
     }
   }
 
@@ -146,6 +168,17 @@ function createCustomCarousel() {
 
   nextButton.addEventListener('click', nextImage);
   prevButton.addEventListener('click', prevImage);
+
+  // Add keyboard navigation
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault(); // Prevent default scroll behavior
+      nextImage();
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault(); // Prevent default scroll behavior
+      prevImage();
+    }
+  });
 
   // Add hover effect to buttons
   [prevButton, nextButton].forEach(button => {

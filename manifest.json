@@ -18,6 +18,10 @@
           "js": ["content.js"]
         }
     ],
+    "web_accessible_resources": [{
+      "resources": ["img/*"],
+      "matches": ["https://www.gumtree.com.au/*"]
+    }],
     "background": {
       "service_worker": "background.js"
     },
